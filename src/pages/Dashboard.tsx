@@ -1,13 +1,5 @@
 import {
-  Cloud,
-  Sun,
-  Sparkles,
-  TrendingUp,
-  TrendingDown,
-  Activity,
-  Calendar,
-  Zap,
-  Bitcoin,
+  Cloud, Sun, Sparkles, TrendingUp, TrendingDown, Activity, Calendar, Zap, Bitcoin,
 } from "lucide-react";
 import { WidgetCard } from "@/components/WidgetCard";
 import { useAuth } from "@/contexts/AuthContext";
@@ -26,21 +18,18 @@ const tasksMock = [
 ];
 
 export default function Dashboard() {
-  const { user } = useAuth();
+  const { profile } = useAuth();
 
   return (
     <div className="space-y-6">
-      {/* Greeting */}
       <div>
         <h1 className="text-2xl font-bold">
-          Good morning, <span className="gradient-text">{user?.name}</span> 👋
+          Good morning, <span className="gradient-text">{profile?.full_name || "User"}</span> 👋
         </h1>
         <p className="text-sm text-muted-foreground mt-1">Here's your daily overview</p>
       </div>
 
-      {/* Widget Grid */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
-        {/* Weather */}
         <WidgetCard title="Weather" icon={<Cloud className="h-4 w-4" />}>
           <div className="flex items-center justify-between">
             <div>
@@ -52,24 +41,22 @@ export default function Dashboard() {
           <p className="text-xs text-muted-foreground mt-2">📍 {weatherMock.location}</p>
         </WidgetCard>
 
-        {/* AI Usage */}
         <WidgetCard title="AI Queries" icon={<Sparkles className="h-4 w-4" />}>
           <div className="space-y-3">
             <div className="flex justify-between text-sm">
               <span className="text-muted-foreground">Used</span>
-              <span className="font-medium">{user?.aiQueriesUsed}/{user?.aiQueriesLimit}</span>
+              <span className="font-medium">{profile?.ai_queries_used ?? 0}/{profile?.ai_queries_limit ?? 50}</span>
             </div>
             <Progress
-              value={((user?.aiQueriesUsed ?? 0) / (user?.aiQueriesLimit ?? 1)) * 100}
+              value={((profile?.ai_queries_used ?? 0) / (profile?.ai_queries_limit ?? 1)) * 100}
               className="h-2 bg-secondary"
             />
             <p className="text-xs text-muted-foreground">
-              {(user?.aiQueriesLimit ?? 0) - (user?.aiQueriesUsed ?? 0)} queries remaining
+              {(profile?.ai_queries_limit ?? 50) - (profile?.ai_queries_used ?? 0)} queries remaining
             </p>
           </div>
         </WidgetCard>
 
-        {/* Crypto */}
         <WidgetCard title="Crypto" icon={<Bitcoin className="h-4 w-4" />}>
           <div className="space-y-3">
             {Object.entries(cryptoMock).map(([symbol, data]) => (
@@ -87,29 +74,22 @@ export default function Dashboard() {
           </div>
         </WidgetCard>
 
-        {/* Quick Stats */}
         <WidgetCard title="Today's Focus" icon={<Zap className="h-4 w-4" />}>
           <div className="grid grid-cols-2 gap-3">
-            <div className="rounded-xl bg-secondary/50 p-3 text-center">
-              <p className="text-xl font-bold gradient-text">4</p>
-              <p className="text-[10px] text-muted-foreground">Tasks</p>
-            </div>
-            <div className="rounded-xl bg-secondary/50 p-3 text-center">
-              <p className="text-xl font-bold gradient-text">2</p>
-              <p className="text-[10px] text-muted-foreground">Meetings</p>
-            </div>
-            <div className="rounded-xl bg-secondary/50 p-3 text-center">
-              <p className="text-xl font-bold gradient-text">87</p>
-              <p className="text-[10px] text-muted-foreground">Focus %</p>
-            </div>
-            <div className="rounded-xl bg-secondary/50 p-3 text-center">
-              <p className="text-xl font-bold gradient-text">3h</p>
-              <p className="text-[10px] text-muted-foreground">Deep Work</p>
-            </div>
+            {[
+              { val: "4", label: "Tasks" },
+              { val: "2", label: "Meetings" },
+              { val: "87", label: "Focus %" },
+              { val: "3h", label: "Deep Work" },
+            ].map((s) => (
+              <div key={s.label} className="rounded-xl bg-secondary/50 p-3 text-center">
+                <p className="text-xl font-bold gradient-text">{s.val}</p>
+                <p className="text-[10px] text-muted-foreground">{s.label}</p>
+              </div>
+            ))}
           </div>
         </WidgetCard>
 
-        {/* Tasks */}
         <WidgetCard title="Tasks" icon={<Calendar className="h-4 w-4" />} colSpan={2}>
           <div className="space-y-2">
             {tasksMock.map((task) => (
@@ -119,39 +99,32 @@ export default function Dashboard() {
                   task.done ? "bg-secondary/30" : "bg-secondary/50 hover:bg-card-hover"
                 }`}
               >
-                <div
-                  className={`h-4 w-4 shrink-0 rounded-full border-2 flex items-center justify-center ${
-                    task.done ? "border-success bg-success" : "border-muted-foreground/30"
-                  }`}
-                >
+                <div className={`h-4 w-4 shrink-0 rounded-full border-2 flex items-center justify-center ${
+                  task.done ? "border-success bg-success" : "border-muted-foreground/30"
+                }`}>
                   {task.done && <span className="text-[8px] text-success-foreground">✓</span>}
                 </div>
-                <span className={task.done ? "text-muted-foreground line-through" : ""}>
-                  {task.title}
-                </span>
+                <span className={task.done ? "text-muted-foreground line-through" : ""}>{task.title}</span>
               </div>
             ))}
           </div>
         </WidgetCard>
 
-        {/* Health Quick */}
         <WidgetCard title="Health" icon={<Activity className="h-4 w-4" />}>
           <div className="space-y-3">
-            <div className="flex justify-between text-sm">
-              <span className="text-muted-foreground">Steps</span>
-              <span className="font-medium">6,847 / 10,000</span>
-            </div>
-            <Progress value={68} className="h-2 bg-secondary" />
-            <div className="flex justify-between text-sm">
-              <span className="text-muted-foreground">Water</span>
-              <span className="font-medium">1.5L / 2.5L</span>
-            </div>
-            <Progress value={60} className="h-2 bg-secondary" />
-            <div className="flex justify-between text-sm">
-              <span className="text-muted-foreground">Sleep</span>
-              <span className="font-medium">7h 20m</span>
-            </div>
-            <Progress value={91} className="h-2 bg-secondary" />
+            {[
+              { label: "Steps", val: "6,847 / 10,000", pct: 68 },
+              { label: "Water", val: "1.5L / 2.5L", pct: 60 },
+              { label: "Sleep", val: "7h 20m", pct: 91 },
+            ].map((s) => (
+              <div key={s.label}>
+                <div className="flex justify-between text-sm">
+                  <span className="text-muted-foreground">{s.label}</span>
+                  <span className="font-medium">{s.val}</span>
+                </div>
+                <Progress value={s.pct} className="h-2 bg-secondary mt-1" />
+              </div>
+            ))}
           </div>
         </WidgetCard>
       </div>

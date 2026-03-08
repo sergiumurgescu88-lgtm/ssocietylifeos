@@ -2,10 +2,10 @@ import { Bell, Crown } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import { SidebarTrigger } from "@/components/ui/sidebar";
 import { Button } from "@/components/ui/button";
-import { Avatar, AvatarFallback } from "@/components/ui/avatar";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 
 export function AppHeader() {
-  const { user } = useAuth();
+  const { profile } = useAuth();
 
   return (
     <header className="sticky top-0 z-30 flex h-14 items-center justify-between border-b border-border/50 bg-background/80 backdrop-blur-xl px-4">
@@ -19,7 +19,7 @@ export function AppHeader() {
           <span className="absolute -top-0.5 -right-0.5 h-2 w-2 rounded-full bg-primary" />
         </Button>
 
-        {user?.plan === "free" && (
+        {profile?.plan_type === "free" && (
           <Button size="sm" className="gradient-primary text-primary-foreground text-xs gap-1.5 rounded-lg shadow-md shadow-primary/20">
             <Crown className="h-3 w-3" />
             Upgrade
@@ -27,8 +27,9 @@ export function AppHeader() {
         )}
 
         <Avatar className="h-8 w-8 border border-border">
+          {profile?.avatar_url && <AvatarImage src={profile.avatar_url} />}
           <AvatarFallback className="bg-secondary text-xs font-medium">
-            {user?.name?.charAt(0) ?? "U"}
+            {profile?.full_name?.charAt(0) ?? "U"}
           </AvatarFallback>
         </Avatar>
       </div>
