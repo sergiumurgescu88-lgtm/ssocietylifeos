@@ -1,8 +1,8 @@
-import { createContext, useContext, useState, useEffect, ReactNode } from "react";
+import { createContext, useContext, useState, useEffect, useCallback, ReactNode } from "react";
 import { Session, User } from "@supabase/supabase-js";
 import { supabase } from "@/integrations/supabase/client";
-import { useNavigate } from "react-router-dom";
 import { toast } from "sonner";
+import { PRODUCT_TO_PLAN, PlanKey } from "@/lib/stripeConfig";
 
 interface Profile {
   id: string;
@@ -16,10 +16,18 @@ interface Profile {
   ai_queries_limit: number;
 }
 
+interface SubscriptionInfo {
+  subscribed: boolean;
+  planKey: PlanKey;
+  subscriptionEnd: string | null;
+  productId: string | null;
+}
+
 interface AuthContextType {
   user: User | null;
   session: Session | null;
   profile: Profile | null;
+  subscription: SubscriptionInfo | null;
   isAuthenticated: boolean;
   isLoading: boolean;
   login: (email: string, password: string) => Promise<void>;
@@ -29,6 +37,7 @@ interface AuthContextType {
   updateProfile: (updates: Partial<Profile>) => Promise<void>;
   uploadAvatar: (file: File) => Promise<string>;
   refreshProfile: () => Promise<void>;
+  refreshSubscription: () => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextType | null>(null);
@@ -43,6 +52,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
   const [session, setSession] = useState<Session | null>(null);
   const [profile, setProfile] = useState<Profile | null>(null);
+  const [subscription, setSubscription] = useState<SubscriptionInfo | null>(null);
   const [isLoading, setIsLoading] = useState(true);
 
   const fetchProfile = async (userId: string) => {
@@ -51,13 +61,40 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       .select("*")
       .eq("user_id", userId)
       .single();
-
     if (error) {
       console.error("Error fetching profile:", error);
       return null;
     }
     return data as Profile;
   };
+
+  const checkSubscription = useCallback(async () => {
+    try {
+      const { data, error } = await supabase.functions.invoke("check-subscription");
+      if (error) {
+        console.error("Subscription check error:", error);
+        return;
+      }
+      const planKey = data?.product_id ? (PRODUCT_TO_PLAN[data.product_id] ?? "free") : "free";
+      setSubscription({
+        subscribed: data?.subscribed ?? false,
+        planKey,
+        subscriptionEnd: data?.subscription_end ?? null,
+        productId: data?.product_id ?? null,
+      });
+
+      // Sync plan_type in profile if it changed
+      if (data?.subscribed && planKey !== "free") {
+        const currentProfile = profile;
+        if (currentProfile && currentProfile.plan_type !== planKey) {
+          await supabase.from("profiles").update({ plan_type: planKey }).eq("user_id", currentProfile.user_id);
+          setProfile((p) => p ? { ...p, plan_type: planKey } : p);
+        }
+      }
+    } catch (err) {
+      console.error("Subscription check failed:", err);
+    }
+  }, [profile]);
 
   const refreshProfile = async () => {
     if (user) {
@@ -66,15 +103,16 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
   };
 
+  const refreshSubscription = async () => {
+    await checkSubscription();
+  };
+
   useEffect(() => {
-    // Set up auth state listener FIRST
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      async (event, session) => {
+    const { data: { subscription: authSub } } = supabase.auth.onAuthStateChange(
+      async (_event, session) => {
         setSession(session);
         setUser(session?.user ?? null);
-
         if (session?.user) {
-          // Use setTimeout to avoid potential deadlocks with Supabase
           setTimeout(async () => {
             const p = await fetchProfile(session.user.id);
             setProfile(p);
@@ -82,12 +120,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           }, 0);
         } else {
           setProfile(null);
+          setSubscription(null);
           setIsLoading(false);
         }
       }
     );
 
-    // THEN get initial session
     supabase.auth.getSession().then(({ data: { session } }) => {
       setSession(session);
       setUser(session?.user ?? null);
@@ -101,8 +139,22 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       }
     });
 
-    return () => subscription.unsubscribe();
+    return () => authSub.unsubscribe();
   }, []);
+
+  // Check subscription when profile is loaded
+  useEffect(() => {
+    if (profile) {
+      checkSubscription();
+    }
+  }, [profile?.user_id]);
+
+  // Periodic subscription check every 60s
+  useEffect(() => {
+    if (!profile) return;
+    const interval = setInterval(checkSubscription, 60000);
+    return () => clearInterval(interval);
+  }, [profile?.user_id, checkSubscription]);
 
   const login = async (email: string, password: string) => {
     const { error } = await supabase.auth.signInWithPassword({ email, password });
@@ -127,6 +179,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     const { error } = await supabase.auth.signOut();
     if (error) throw error;
     setProfile(null);
+    setSubscription(null);
     toast.success("Te-ai deconectat.");
   };
 
@@ -140,10 +193,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const updateProfile = async (updates: Partial<Profile>) => {
     if (!user) throw new Error("Not authenticated");
-    const { error } = await supabase
-      .from("profiles")
-      .update(updates)
-      .eq("user_id", user.id);
+    const { error } = await supabase.from("profiles").update(updates).eq("user_id", user.id);
     if (error) throw error;
     await refreshProfile();
     toast.success("Profil actualizat!");
@@ -153,12 +203,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     if (!user) throw new Error("Not authenticated");
     const fileExt = file.name.split(".").pop();
     const filePath = `${user.id}/avatar.${fileExt}`;
-
-    const { error: uploadError } = await supabase.storage
-      .from("avatars")
-      .upload(filePath, file, { upsert: true });
+    const { error: uploadError } = await supabase.storage.from("avatars").upload(filePath, file, { upsert: true });
     if (uploadError) throw uploadError;
-
     const { data } = supabase.storage.from("avatars").getPublicUrl(filePath);
     await updateProfile({ avatar_url: data.publicUrl });
     return data.publicUrl;
@@ -170,6 +216,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         user,
         session,
         profile,
+        subscription,
         isAuthenticated: !!session,
         isLoading,
         login,
@@ -179,6 +226,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         updateProfile,
         uploadAvatar,
         refreshProfile,
+        refreshSubscription,
       }}
     >
       {children}
