@@ -12,6 +12,7 @@ import Dashboard from "@/pages/Dashboard";
 import AIChat from "@/pages/AIChat";
 import Finance from "@/pages/Finance";
 import Health from "@/pages/Health";
+import NewsPage from "@/pages/News";
 import SettingsPage from "@/pages/Settings";
 import NotFound from "@/pages/NotFound";
 

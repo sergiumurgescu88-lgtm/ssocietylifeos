@@ -3,6 +3,7 @@ import {
   MessageSquare,
   Wallet,
   Heart,
+  Newspaper,
   Settings,
   Sparkles,
 } from "lucide-react";
