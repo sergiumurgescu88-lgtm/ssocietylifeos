@@ -66,6 +66,7 @@ export type Database = {
           full_name: string | null
           id: string
           plan_type: string
+          stripe_customer_id: string | null
           timezone: string | null
           updated_at: string
           user_id: string
@@ -79,6 +80,7 @@ export type Database = {
           full_name?: string | null
           id?: string
           plan_type?: string
+          stripe_customer_id?: string | null
           timezone?: string | null
           updated_at?: string
           user_id: string
@@ -92,8 +94,69 @@ export type Database = {
           full_name?: string | null
           id?: string
           plan_type?: string
+          stripe_customer_id?: string | null
           timezone?: string | null
           updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      transactions: {
+        Row: {
+          amount: number
+          created_at: string
+          currency: string
+          description: string | null
+          id: string
+          transaction_date: string
+          type: string
+          user_id: string
+        }
+        Insert: {
+          amount?: number
+          created_at?: string
+          currency?: string
+          description?: string | null
+          id?: string
+          transaction_date?: string
+          type?: string
+          user_id: string
+        }
+        Update: {
+          amount?: number
+          created_at?: string
+          currency?: string
+          description?: string | null
+          id?: string
+          transaction_date?: string
+          type?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      usage_logs: {
+        Row: {
+          api_calls_count: number
+          created_at: string
+          id: string
+          log_date: string
+          module_accessed: string
+          user_id: string
+        }
+        Insert: {
+          api_calls_count?: number
+          created_at?: string
+          id?: string
+          log_date?: string
+          module_accessed: string
+          user_id: string
+        }
+        Update: {
+          api_calls_count?: number
+          created_at?: string
+          id?: string
+          log_date?: string
+          module_accessed?: string
           user_id?: string
         }
         Relationships: []
