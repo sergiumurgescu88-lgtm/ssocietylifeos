@@ -26,6 +26,7 @@ const navItems = [
   { title: "AI Chat", url: "/ai-chat", icon: MessageSquare },
   { title: "Finance", url: "/finance", icon: Wallet },
   { title: "Health", url: "/health", icon: Heart },
+  { title: "News", url: "/news", icon: Newspaper },
   { title: "Settings", url: "/settings", icon: Settings },
 ];
 

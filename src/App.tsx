@@ -40,6 +40,7 @@ const App = () => (
               <Route path="/ai-chat" element={<AIChat />} />
               <Route path="/finance" element={<Finance />} />
               <Route path="/health" element={<Health />} />
+              <Route path="/news" element={<NewsPage />} />
               <Route path="/settings" element={<SettingsPage />} />
             </Route>
             <Route path="*" element={<NotFound />} />
