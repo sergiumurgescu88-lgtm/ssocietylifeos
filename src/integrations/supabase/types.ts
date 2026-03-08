@@ -14,6 +14,48 @@ export type Database = {
   }
   public: {
     Tables: {
+      health_logs: {
+        Row: {
+          calories: number | null
+          created_at: string
+          id: string
+          log_date: string
+          mood: number | null
+          notes: string | null
+          sleep_hours: number | null
+          steps: number | null
+          updated_at: string
+          user_id: string
+          water_liters: number | null
+        }
+        Insert: {
+          calories?: number | null
+          created_at?: string
+          id?: string
+          log_date?: string
+          mood?: number | null
+          notes?: string | null
+          sleep_hours?: number | null
+          steps?: number | null
+          updated_at?: string
+          user_id: string
+          water_liters?: number | null
+        }
+        Update: {
+          calories?: number | null
+          created_at?: string
+          id?: string
+          log_date?: string
+          mood?: number | null
+          notes?: string | null
+          sleep_hours?: number | null
+          steps?: number | null
+          updated_at?: string
+          user_id?: string
+          water_liters?: number | null
+        }
+        Relationships: []
+      }
       profiles: {
         Row: {
           ai_queries_limit: number
