@@ -68,12 +68,6 @@ export async function fetchCryptoMarkets(): Promise<CoinMarket[]> {
   if (cached) return cached;
 
   try {
-    const { data, error } = await supabase.functions.invoke("crypto-prices", {
-      body: undefined,
-      headers: { "Content-Type": "application/json" },
-    });
-
-    // supabase.functions.invoke doesn't support query params well, use fetch
     const resp = await fetch(
       `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/crypto-prices?endpoint=markets`,
       {
