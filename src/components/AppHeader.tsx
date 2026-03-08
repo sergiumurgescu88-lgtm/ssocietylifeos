@@ -3,9 +3,12 @@ import { useAuth } from "@/contexts/AuthContext";
 import { SidebarTrigger } from "@/components/ui/sidebar";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { useNavigate } from "react-router-dom";
 
 export function AppHeader() {
-  const { profile } = useAuth();
+  const { profile, subscription } = useAuth();
+  const navigate = useNavigate();
+  const isPaid = subscription?.subscribed || (profile?.plan_type !== "free");
 
   return (
     <header className="sticky top-0 z-30 flex h-14 items-center justify-between border-b border-border/50 bg-background/80 backdrop-blur-xl px-4">
@@ -19,8 +22,12 @@ export function AppHeader() {
           <span className="absolute -top-0.5 -right-0.5 h-2 w-2 rounded-full bg-primary" />
         </Button>
 
-        {profile?.plan_type === "free" && (
-          <Button size="sm" className="gradient-primary text-primary-foreground text-xs gap-1.5 rounded-lg shadow-md shadow-primary/20">
+        {!isPaid && (
+          <Button
+            size="sm"
+            onClick={() => navigate("/pricing")}
+            className="gradient-primary text-primary-foreground text-xs gap-1.5 rounded-lg shadow-md shadow-primary/20"
+          >
             <Crown className="h-3 w-3" />
             Upgrade
           </Button>

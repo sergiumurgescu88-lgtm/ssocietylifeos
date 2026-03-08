@@ -6,9 +6,10 @@ import {
   Newspaper,
   Settings,
   Sparkles,
+  Crown,
 } from "lucide-react";
 import { NavLink } from "@/components/NavLink";
-import { useLocation } from "react-router-dom";
+import { useLocation, useNavigate } from "react-router-dom";
 import {
   Sidebar,
   SidebarContent,
@@ -20,6 +21,7 @@ import {
   SidebarFooter,
   useSidebar,
 } from "@/components/ui/sidebar";
+import { useAuth } from "@/contexts/AuthContext";
 
 const navItems = [
   { title: "Dashboard", url: "/dashboard", icon: LayoutDashboard },
@@ -34,6 +36,9 @@ export function AppSidebar() {
   const { state } = useSidebar();
   const collapsed = state === "collapsed";
   const location = useLocation();
+  const navigate = useNavigate();
+  const { subscription, profile } = useAuth();
+  const isPaid = subscription?.subscribed || (profile?.plan_type !== "free");
 
   return (
     <Sidebar collapsible="icon" className="border-r border-border/50">
@@ -83,9 +88,13 @@ export function AppSidebar() {
         </SidebarGroup>
       </SidebarContent>
 
-      {!collapsed && (
+      {!collapsed && !isPaid && (
         <SidebarFooter className="p-4">
-          <div className="rounded-xl gradient-primary p-4 text-center">
+          <div
+            className="rounded-xl gradient-primary p-4 text-center cursor-pointer hover:opacity-90 transition-opacity"
+            onClick={() => navigate("/pricing")}
+          >
+            <Crown className="h-4 w-4 text-primary-foreground mx-auto mb-1" />
             <p className="text-xs font-semibold text-primary-foreground">Upgrade to PRO</p>
             <p className="mt-1 text-[10px] text-primary-foreground/70">Unlock unlimited AI queries</p>
           </div>

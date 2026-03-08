@@ -2,7 +2,7 @@ import { memo } from "react";
 import { Crown, Sparkles, Zap, Shield, Check } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/contexts/AuthContext";
-import { toast } from "sonner";
+import { useNavigate } from "react-router-dom";
 
 const proFeatures = [
   { icon: Sparkles, text: "Unlimited AI queries" },
@@ -11,26 +11,20 @@ const proFeatures = [
 ];
 
 function UpgradeCardInner() {
-  const { profile } = useAuth();
+  const { profile, subscription } = useAuth();
+  const navigate = useNavigate();
+  const isPaid = subscription?.subscribed || (profile?.plan_type !== "free");
 
-  if (profile?.plan_type !== "free") return null;
-
-  const handleUpgrade = () => {
-    // Stripe integration placeholder
-    toast.info("Stripe checkout va fi integrat aici. Coming soon!");
-  };
+  if (isPaid) return null;
 
   return (
     <div className="relative overflow-hidden rounded-2xl p-[1px]">
-      {/* Gold gradient border */}
       <div className="absolute inset-0 bg-gradient-to-br from-yellow-400 via-amber-500 to-orange-500 opacity-60" />
-
       <div className="relative glass-card rounded-2xl p-5">
         <div className="flex items-center gap-2 mb-3">
           <Crown className="h-5 w-5 text-warning" />
           <h3 className="text-sm font-bold">Upgrade to PRO</h3>
         </div>
-
         <div className="space-y-2 mb-4">
           {proFeatures.map((f) => (
             <div key={f.text} className="flex items-center gap-2 text-xs text-muted-foreground">
@@ -39,15 +33,13 @@ function UpgradeCardInner() {
             </div>
           ))}
         </div>
-
         <Button
-          onClick={handleUpgrade}
+          onClick={() => navigate("/pricing")}
           className="w-full bg-gradient-to-r from-yellow-500 to-amber-600 text-black font-semibold hover:from-yellow-400 hover:to-amber-500 shadow-lg shadow-amber-500/20"
         >
           <Crown className="h-4 w-4 mr-1" />
-          Get PRO — $9.99/mo
+          Get PRO — $14.99/mo
         </Button>
-
         <p className="text-[10px] text-muted-foreground text-center mt-2">Cancel anytime · Secure payment</p>
       </div>
     </div>
