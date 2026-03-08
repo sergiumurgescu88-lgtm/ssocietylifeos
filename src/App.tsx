@@ -12,6 +12,7 @@ import Dashboard from "@/pages/Dashboard";
 import AIChat from "@/pages/AIChat";
 import Finance from "@/pages/Finance";
 import Health from "@/pages/Health";
+import NewsPage from "@/pages/News";
 import SettingsPage from "@/pages/Settings";
 import NotFound from "@/pages/NotFound";
 
@@ -39,6 +40,7 @@ const App = () => (
               <Route path="/ai-chat" element={<AIChat />} />
               <Route path="/finance" element={<Finance />} />
               <Route path="/health" element={<Health />} />
+              <Route path="/news" element={<NewsPage />} />
               <Route path="/settings" element={<SettingsPage />} />
             </Route>
             <Route path="*" element={<NotFound />} />
